@@ -4,12 +4,16 @@ import axios from "axios";
 import {AddCerveza} from "../Classes/AddCerveza";
 import {EditCerveza} from "../Classes/EditCerveza";
 import {Button, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
-export default function Cervezas(){
+import {AddMarca} from "../Classes/AddMarca";
+
+export default function Cervezas() {
     const baseUrl: string = "http://localhost:8081/cerveza"
     const baseUrlAux: string = "http://localhost:8081"
     const [data, setData] = useState<Cerveza[]>([]);
     const [getMarc, setGetMarc] = useState<Marca[]>([]);
     const [getCont, setGetCont] = useState<Contenido[]>([]);
+    /*const [nomMarc,setNomMarc]=useState('')
+    const [descMarc,setDescMarc]=useState('')*/
 
     useEffect(() => {
         axios.get<Cerveza[]>(`${baseUrl}`)
@@ -42,8 +46,8 @@ export default function Cervezas(){
             });
     }, []);
 
-    const [nombre,setNombre]=useState('')
-    const [desc,setDesc]=useState('')
+    const [nombre, setNombre] = useState('')
+    const [desc, setDesc] = useState('')
     const [idMarc, setIdMarc] = useState(0)
     const [idCont, setIdCont] = useState(0)
     const handleNombreChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,52 +75,55 @@ export default function Cervezas(){
     const [buttonSubmitText, setButtonSubmitText] = useState('Add')
     const [indexToEdit, setIndexToEdit] = useState(0)
 
-    const handleSubmit=(event:React.FormEvent<HTMLFormElement>)=>{
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
-        if(!edit){
-            axios.post<Cerveza>(`${baseUrl}/create`,new AddCerveza(nombre,desc,idMarc,idCont,1))
-                .then(reponse=>{
+        const mf = getMarc.filter(obj => obj.id == idMarc)
+        const cf = getCont.filter(obj => obj.id == idCont)
+        if (!edit) {
+            axios.post<Cerveza>(`${baseUrl}/create`, new AddCerveza(nombre, desc, idMarc, idCont, 1))
+                .then(reponse => {
                     console.log(reponse.data)
-                    const newData:Cerveza[]=[
+                    const newData: Cerveza[] = [
                         ...data,
                         {
-                            id:reponse.data.id,
-                            nombre:reponse.data.nombre,
-                            descripcion:reponse.data.descripcion,
-                            id_marca:reponse.data.id_marca,
-                            id_contenido:reponse.data.id_contenido,
-                            status:reponse.data.status
+                            id: reponse.data.id,
+                            nombre: reponse.data.nombre,
+                            descripcion: reponse.data.descripcion,
+                            id_marca: reponse.data.id_marca,
+                            id_contenido: reponse.data.id_contenido,
+                            status: reponse.data.status
                         }
                     ]
                     setData(newData)
-                }).catch(error=>{
+                }).catch(error => {
                 console.log(error)
             })
-        }else {
-            axios.put<Cerveza>(`${baseUrl}/update/${data[indexToEdit].id}`,new EditCerveza(data[indexToEdit].id,nombre,desc,idMarc,idCont,1))
-                .then(reponse=>{
-                    const updatedData=data.map(item=>{
-                        if(item.id===data[indexToEdit].id){
+        } else {
+            axios.put<Cerveza>(`${baseUrl}/update/${data[indexToEdit].id}`, new EditCerveza(data[indexToEdit].id, nombre, desc, idMarc, idCont, 1))
+                .then(reponse => {
+                    const updatedData = data.map(item => {
+                        if (item.id === data[indexToEdit].id) {
                             return {
                                 ...item,
-                                nombre:nombre,
-                                descripcion:desc,
-                                id_marca:{
-                                    id:idMarc,
-                                    nombre:getMarc[idMarc].nombre,
-                                    descripcion:getMarc[idMarc].descripcion,
-                                    status:getMarc[idMarc].status
+                                nombre: nombre,
+                                descripcion: desc,
+                                id_marca: {
+                                    id: idMarc,
+                                    nombre: mf[0].nombre,
+                                    descripcion: mf[0].descripcion,
+                                    status: mf[0].status
                                 },
-                                id_contenido:{
-                                    id:idCont,
-                                    cantidad:getCont[idCont].cantidad,
-                                    status:getCont[idCont].status
-                                }}
+                                id_contenido: {
+                                    id: idCont,
+                                    cantidad: cf[0].cantidad,
+                                    status: cf[0].status
+                                }
+                            }
                         }
                         return item;
                     })
                     setData(updatedData)
-                }).catch(error=>{
+                }).catch(error => {
                 console.log(error)
             })
             setButtonSubmitText('Add')
@@ -135,11 +142,11 @@ export default function Cervezas(){
         setIndexToEdit(index)
         handleShowModal()
     }
-    const deleteElement=(id:number,nom:string,descrip:string,id_marc:number,id_cont:number)=>{
-        axios.put<Cerveza>(`${baseUrl}/delete/${id}`,new EditCerveza(id,nom,descrip,id_marc,id_cont,0))
-            .then(response=>{
-                setData(data.filter(obj=>obj.id!==id))
-            }).catch(error=>{
+    const deleteElement = (id: number, nom: string, descrip: string, id_marc: number, id_cont: number) => {
+        axios.put<Cerveza>(`${baseUrl}/delete/${id}`, new EditCerveza(id, nom, descrip, id_marc, id_cont, 0))
+            .then(response => {
+                setData(data.filter(obj => obj.id !== id))
+            }).catch(error => {
             console.log(error)
         })
     }
@@ -149,7 +156,7 @@ export default function Cervezas(){
         setIdMarc(0)
         setIdCont(0)
     }
-    return(
+    return (
         <>
             <div className={"container pt-5"}>
                 <div className={"row d-flex justify-content-center"}>
@@ -163,7 +170,7 @@ export default function Cervezas(){
                     {data.map((item, index: number) => (
                         <div className={"mb-4 mx-5 p-2 col-3 buttons"}>
                             <p className={"text-center"}>{item.nombre}<br/></p>
-                            Descripcion: {item.descripcion} M☉<br/>
+                            Descripcion: {item.descripcion}<br/>
                             Marca: {item.id_marca.nombre}<br/>
                             Contenido: {item.id_contenido.cantidad} ml
                             <hr/>
@@ -172,7 +179,7 @@ export default function Cervezas(){
                                         onClick={() => editElement(index)}>Edit
                                 </button>
                                 <button className={"btn btn-outline-warning"}
-                                        onClick={() => deleteElement(item.id,item.nombre,item.descripcion,item.id_marca.id,item.id_contenido.id)}>Delete
+                                        onClick={() => deleteElement(item.id, item.nombre, item.descripcion, item.id_marca.id, item.id_contenido.id)}>Delete
                                 </button>
                             </div>
                         </div>
@@ -187,7 +194,7 @@ export default function Cervezas(){
                             <ModalBody style={{backgroundColor: "#4e86a9"}}>
                                 <label>
                                     Nombre:<input className={"ms-2"} type={"text"} value={nombre} required
-                                                onChange={handleNombreChange}/>
+                                                  onChange={handleNombreChange}/>
                                 </label>
                                 <br/><br/>
                                 <label>
@@ -211,7 +218,7 @@ export default function Cervezas(){
                                     <select className={"ms-3"} value={idCont} onChange={handleIdContChange}>
                                         <option value={0} selected>--Selecciona--</option>
                                         {getCont.map((item) => (
-                                            <option value={item.id}>{item.cantidad} ml</option>
+                                            <option value={item.id}>{item.cantidad}</option>
                                         ))}
                                     </select>
                                 </label>

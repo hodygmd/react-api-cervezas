@@ -1,3 +1,5 @@
+import {Contenido, Marca} from "../Interfaces/Cerveza";
+
 export class AddCerveza{
     constructor(
         public nombre:string,
